@@ -195,5 +195,5 @@ def tableaux_excel():
         )
 
 
-# tableaux_excel()
+tableaux_excel()
 figures_png()
