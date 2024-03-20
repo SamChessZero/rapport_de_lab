@@ -67,13 +67,13 @@ class LimiteDeLiquidité:
         )
         df["R^2"] = df["rvalue"] ** 2
         self.régression_linéaire = df.drop(columns=["rvalue", "pvalue", "stderr"])
-        self.limite_de_liquidité = DataFrame(
+        self.teneur_en_eau_limite = DataFrame(
             [
-                (log10(25) - linregress_result[i][1]) / linregress_result[i][0]
+                (log10(25) - linregress_result[i][1]) / linregress_result[i][0] / 100
                 for i in range(28)
             ],
             index=range(1, 29),
-            columns=["limite de liquidité"],
+            columns=["teneur en eau limite"],
         )
 
 

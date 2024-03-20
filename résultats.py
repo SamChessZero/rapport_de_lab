@@ -1,27 +1,10 @@
 import calculs
 import numpy as np
 import matplotlib.pyplot as plt
+from pandas import ExcelWriter
 from données import Données
 
 équipe = 8
-
-
-# Ks de chaque équipe
-def tableau_1():
-    print(
-        "\nTableau 1. Constantes de conductivité hydraulique à saturation"
-        + " des 28 équipes au laboratoire 1\n",
-        calculs.ConductivitéHydraulique().Ks,
-    )
-
-
-# Ks statistiques
-def tableau_2():
-    print(
-        "\nTableau 2: statistiques de base relatives aux valeurs de "
-        + "conductivité hydraulique\n",
-        calculs.ConductivitéHydraulique().Ks.describe(),
-    )
 
 
 # Ks Graphique de points et diagramme en boîte
@@ -51,7 +34,7 @@ def figure_1():
     )
     ax[1].set_xlabel("Ks (cm/s)", fontsize=14)
     ax[1].get_yaxis().set_visible(False)
-    plt.show()
+    plt.savefig("figures/fig1.png")
 
 
 # Ks diagramme en barres Ks
@@ -90,18 +73,7 @@ def figure_2():
     )
     ax.plot([0.02], transform=ax.transAxes, **line_break)
     ax.plot([0.03], transform=ax.transAxes, **line_break)
-    plt.show()
-
-
-# paramètres courbe rétention
-def tableau_3():
-    print(
-        "\nTableau 3. Paramètres optimaux de l'équation de van Genuchten"
-        + "\n ajustée sur les données et capacité au champ\n",
-        calculs.CourbeDeRétention().paramètres_optimaux.join(
-            calculs.CourbeDeRétention().capacité_au_champ
-        ),
-    )
+    plt.savefig("figures/fig2.png")
 
 
 # courbe de rétention simple
@@ -118,7 +90,7 @@ def figure_3a():
     )
     ax.set_xlabel(r"potentiel matriciel $\psi$  (cm $H_2O$)", fontsize=14)
     ax.set_ylabel("\n" + r"teneur en eau $\theta$", fontsize=14)
-    plt.show()
+    plt.savefig("figures/fig3a.png")
 
 
 # courbe de rétention comparée
@@ -150,7 +122,7 @@ def figure_3b():
     )
     ax.set_xlabel(r"potentiel matriciel $\psi$  (cm $H_2O$)", fontsize=14)
     ax.set_ylabel("\n" + r"teneur en eau $\theta$", fontsize=14)
-    plt.show()
+    plt.savefig("figures/fig3b.png")
 
 
 # graphique nombre de coups Casagrande
@@ -164,7 +136,7 @@ def figure_4():
     ax.set_title(f"Labo 2 limite de liquidité équipe {équipe}")
     ax.set_xlabel("teneur en eau massique (kg/kg)")
     ax.set_ylabel("nombre de coups")
-    plt.show()
+    plt.savefig("figures/fig4.png")
 
 
 # graphique log(nombre de coups) Casagrande
@@ -192,12 +164,27 @@ def figure_5():
     plt.title("labo 2 limite de liquidité")
     plt.xlabel("teneur en eau massique (%)")
     plt.ylabel("log(#coups)")
-    plt.show()
+    plt.savefig("figures/fig5.png")
 
 
-tableau_1()
-tableau_2()
-tableau_3()
+def tableaux_excel():
+    with ExcelWriter("tableaux/tableaux.xlsx") as writer:
+        calculs.ConductivitéHydraulique().Ks.to_excel(writer, sheet_name="Ks")
+        calculs.ConductivitéHydraulique().Ks.describe().to_excel(
+            writer, sheet_name="Ks stats"
+        )
+        calculs.CourbeDeRétention().paramètres_optimaux.join(
+            calculs.CourbeDeRétention().capacité_au_champ
+        ).to_excel(writer, sheet_name="paramètres courbe rétention")
+        calculs.LimiteDeLiquidité().régression_linéaire.to_excel(
+            writer, sheet_name="droite régression"
+        )
+        calculs.LimiteDeLiquidité().teneur_en_eau_limite.to_excel(
+            writer, sheet_name="teneur eau limite"
+        )
+
+
+tableaux_excel()
 figure_1()
 figure_2()
 figure_3a()
