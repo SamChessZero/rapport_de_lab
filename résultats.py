@@ -142,29 +142,40 @@ def figure_4():
 # graphique log(nombre de coups) Casagrande
 def figure_5():
     droite = calculs.LimiteDeLiquidité().régression_linéaire
+    w = Données().teneur_en_eau_massique[équipe - 1]
     m = droite.loc[équipe].iloc[0]
     b = droite.loc[équipe].iloc[1]
     r2 = droite.loc[équipe].iloc[2]
-    w = np.linspace(
-        Données().teneur_en_eau_massique[équipe - 1][3] - 1,
-        Données().teneur_en_eau_massique[équipe - 1][0] + 1,
+    x = np.linspace(
+        w[3] - 1,
+        w[0] + 1,
         100,
     )
-    plt.plot(
-        Données().teneur_en_eau_massique[équipe - 1],
+    fig, ax = plt.subplots()
+    ax.plot(
+        w,
         np.log10(Données().nombre_de_coups[équipe - 1]),
         "o",
     )
-    plt.plot(
-        w,
+    ax.plot(
+        x,
         calculs.droite_de_liquidation(m, w, b),
         label="$y = {0:0.4f} x + {1:0.4f}$ \n $R^2 = {2:0.6f}$".format(m, b, r2),
     )
-    plt.legend()
-    plt.title("labo 2 limite de liquidité")
-    plt.xlabel("teneur en eau massique (%)")
-    plt.ylabel("log(#coups)")
+    ax.legend()
+    ax.set_title("labo 2 limite de liquidité")
+    ax.set_xlabel("teneur en eau massique (%)")
+    ax.set_ylabel("log(#coups)")
     plt.savefig("figures/fig5.png")
+
+
+def figures_png():
+    figure_1()
+    figure_2()
+    figure_3a()
+    figure_3b()
+    figure_4()
+    figure_5()
 
 
 def tableaux_excel():
@@ -184,10 +195,5 @@ def tableaux_excel():
         )
 
 
-tableaux_excel()
-figure_1()
-figure_2()
-figure_3a()
-figure_3b()
-figure_4()
-figure_5()
+# tableaux_excel()
+figures_png()
