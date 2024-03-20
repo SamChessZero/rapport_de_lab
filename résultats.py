@@ -1,100 +1,138 @@
-from pandas import DataFrame
-from numpy import pi, inf, log10
-from scipy.optimize import curve_fit
-from scipy.stats import linregress
-from données import Données
+import calculs
+import matplotlib.pyplot as plt
+from données import Données
+from numpy import log10, linspace, unique, arange
 
 
-class ConductivitéHydraulique:
-    def __init__(self) -> None:
-
-        def calculer_Ks_moyen(débits_Q: list):
-            surface = pi * (échantillon.diamètre / 2) ** 2
-            Ks_moyen = (
-                (débits_Q.mean()) / surface * échantillon.longueur / échantillon.delta_H
-            )
-            return Ks_moyen
-
-        def obtenir_Ks_de_chaque_équipe():
-            Ks = []
-            for i in range(28):
-                Ks.append(calculer_Ks_moyen(échantillon.débit_H2O[i]))
-            return Ks
-
-        self.Ks = DataFrame(
-            obtenir_Ks_de_chaque_équipe(), index=range(1, 29), columns=["Ks (cm/s)"]
-        )
-
-
-class CourbeDeRétention:
-    def __init__(self) -> None:
-
-        paramètres_optimaux = [
-            curve_fit(
-                van_Genuchten,
-                échantillon.potentiel_matriciel,
-                échantillon.teneur_en_eau[i],
-                bounds=(1e-8, inf),
-            )[0]
-            for i in range(28)
-        ]
-        self.paramètres_optimaux = DataFrame(
-            paramètres_optimaux,
-            index=range(1, 29),
-            columns=["theta_r", "theta_s", "alpha", "m", "n"],
-        )
-        capacité_au_champ = [
-            van_Genuchten(convertir_kiloPascals_en_cm_H2O(33), *paramètres_optimaux[i])
-            for i in range(28)
-        ]
-        self.capacité_au_champ = DataFrame(
-            capacité_au_champ, index=range(1, 29), columns=["theta_c"]
-        )
-
-
-class LimiteDeLiquidité:
-    def __init__(self) -> None:
-        paramètres_optimaux = [
-            linregress(
-                échantillon.teneur_en_eau_massique[i],
-                log10(échantillon.nombre_de_coups[i]),
-            )
-            for i in range(28)
-        ]
-        self.paramètres_optimaux = DataFrame(
-            paramètres_optimaux,
-            index=range(1, 29),
-        )
-        popt = paramètres_optimaux
-        limite_de_liquidité = [(log10(25) - popt[i][1]) / popt[i][0] for i in range(28)]
-        self.limite_de_liquidité = DataFrame(
-            limite_de_liquidité, index=range(1, 29), columns=["limite de liquidité"]
-        )
-
-
-def van_Genuchten(h, qr, qs, a, m, n):
-    teneur_en_eau = qr + (qs - qr) / (1 + (a * h) ** n) ** m
-    return teneur_en_eau
-
-
-def droite_de_liquidation(m, w, b):
-    log10_nombre_de_coups = m * w + b
-    return log10_nombre_de_coups
-
-
-def convertir_kiloPascals_en_cm_H2O(pression):
-    accélération_gravitationnelle = 9.81  # mètres par secondes^2
-    Pascals = 1000  # Pascals par kiloPascal
-    masse_volumique_H2O = 1000  # kilogramme par mètre^3
-    conversion_cm = 100  # centimètres par mètre
-    hauteur_H2O = (
-        pression
-        * Pascals
-        * conversion_cm
-        / masse_volumique_H2O
-        / accélération_gravitationnelle
+def tableau_1():
+    print(
+        "\nTableau 1. Constantes de conductivité hydraulique à saturation"
+        + " des 28 équipes au laboratoire 1\n",
+        calculs.ConductivitéHydraulique().Ks,
     )
-    return hauteur_H2O
 
 
-échantillon = Données()
+def tableau_2():
+    print(
+        "\nTableau 2: statistiques de base relatives aux valeurs de "
+        + "conductivité hydraulique\n",
+        calculs.ConductivitéHydraulique().Ks.describe(),
+    )
+
+
+def figure_1():
+    """graphique de points et diagramme en boite"""
+    Ks_unique, counts = unique(
+        calculs.ConductivitéHydraulique().Ks["Ks (cm/s)"], return_counts=True
+    )
+    medianprops = dict(linestyle="-", linewidth=2.5, color="crimson")
+
+    boxprops = dict(color="midnightblue", facecolor="powderblue")
+    whiskerprops = dict(color="midnightblue")
+
+    fig1, ax = plt.subplots(2, figsize=(9, 6), sharex=True)
+    ax[0].scatter(Ks_unique, counts, 50, color="powderblue", edgecolor="darkblue")
+    ax[0].set_ybound(0, 5)
+    ax[0].set_ylabel("frequence", fontsize=14)
+    ax[0].set_title("Labo 1 partie 1 \nDistribution des différents Ks", fontsize=14)
+
+    ax[1].boxplot(
+        calculs.ConductivitéHydraulique().Ks,
+        vert=False,
+        patch_artist=True,
+        medianprops=medianprops,
+        boxprops=boxprops,
+        whiskerprops=whiskerprops,
+    )
+    ax[1].set_xlabel("Ks (cm/s)", fontsize=14)
+    ax[1].get_yaxis().set_visible(False)
+    plt.show()
+
+
+def figure_2():
+    """Diagramme à barres"""
+    Ks = calculs.ConductivitéHydraulique().Ks["Ks (cm/s)"]
+    team = 8
+    fig, ax = plt.subplots(figsize=(9, 6))
+    ax.bar(arange(1, len(Ks) + 1), Ks, color="powderblue", edgecolor="cornflowerblue")
+    ax.bar(
+        team, Ks[team], color="crimson", label="K$_s$ = {0:0.4f} cm/s".format(Ks[team])
+    )
+    ax.set_title(
+        "Labo 1 partie 1 \nConstante de conductivité hydraulique à saturation (K$_s$)",
+        fontsize=14,
+    )
+    ax.set_xlabel("équipe", fontsize=14)
+    ax.set_xticks(arange(1, len(Ks) + 1))
+    ax.tick_params(axis="x", which="both", labelsize="small")
+    ax.set_ylabel("$K_s$" + " (cm/s)", fontsize=14)
+    ax.set_ylim(bottom=0.005, top=0.022)
+    ax.axhline(0.0157, linestyle="--", color="cornflowerblue", label="moyenne")
+    ax.legend(loc="upper left", frameon=False, fontsize=12)
+    line_break = dict(
+        marker=[(-1, -0.5), (1, 0.5)],
+        markersize=12,
+        linestyle="none",
+        color="k",
+        mec="k",
+        mew=1,
+        clip_on=False,
+    )
+    ax.plot([0.02], transform=ax.transAxes, **line_break)
+    ax.plot([0.03], transform=ax.transAxes, **line_break)
+    plt.show()
+
+
+def afficher_résultats():
+    res = calculs.CourbeDeRétention().paramètres_optimaux
+    print(
+        "\nÉchantillon équipe 8 : "
+        + "\nConductivité hydraulique à saturation = {0:0.4f} cm/s.".format(
+            calculs.ConductivitéHydraulique().Ks[7]
+        )
+    )
+    print(
+        "teneur en eau résiduelle = {0:0.5f}".format(res[7][0])
+        + "\nteneur en eau à saturation = {0:0.5f}".format(res[7][1])
+        + "\na = {0:0.5f}".format(res[7][2])
+        + "\nm = {0:0.5f}".format(res[7][3])
+        + "\nn = {0:0.5f}".format(res[7][4])
+    )
+    print(
+        "capacité au champ = {0:0.5f}".format(
+            calculs.CourbeDeRétention().capacité_au_champ[7]
+        )
+    )
+
+
+droite = calculs.LimiteDeLiquidité().paramètres_optimaux
+droite["R^2"] = droite["rvalue"] ** 2
+droite = droite.drop(columns=["rvalue", "pvalue", "stderr"])
+
+
+def plot_liquidité():
+    m = droite.loc[8].iloc[0]
+    b = droite.loc[8].iloc[1]
+    r2 = droite.loc[8].iloc[2]
+    w = linspace(64, 72, 100)
+    plt.plot(
+        Données().teneur_en_eau_massique[7], log10(Données().nombre_de_coups[7]), "o"
+    )
+    plt.plot(
+        w,
+        calculs.droite_de_liquidation(m, w, b),
+        label="$y = {0:0.4f} x + {1:0.4f}$ \n $R^2 = {2:0.6f}$".format(m, b, r2),
+    )
+    plt.legend()
+    plt.title("labo 2 limite de liquidité")
+    plt.xlabel("teneur en eau massique (%)")
+    plt.ylabel("log(#coups)")
+    plt.show()
+
+
+# tableau_1()
+# tableau_2()
+# figure_1()
+figure_2()
+# print(droite)
+# plot_liquidité()
