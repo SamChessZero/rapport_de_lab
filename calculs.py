@@ -54,21 +54,26 @@ class CourbeDeRétention:
 
 class LimiteDeLiquidité:
     def __init__(self) -> None:
-        paramètres_optimaux = [
+        linregress_result = [
             linregress(
                 échantillon.teneur_en_eau_massique[i],
                 log10(échantillon.nombre_de_coups[i]),
             )
             for i in range(28)
         ]
-        self.paramètres_optimaux = DataFrame(
-            paramètres_optimaux,
+        df = DataFrame(
+            linregress_result,
             index=range(1, 29),
         )
-        popt = paramètres_optimaux
-        limite_de_liquidité = [(log10(25) - popt[i][1]) / popt[i][0] for i in range(28)]
+        df["R^2"] = df["rvalue"] ** 2
+        self.régression_linéaire = df.drop(columns=["rvalue", "pvalue", "stderr"])
         self.limite_de_liquidité = DataFrame(
-            limite_de_liquidité, index=range(1, 29), columns=["limite de liquidité"]
+            [
+                (log10(25) - linregress_result[i][1]) / linregress_result[i][0]
+                for i in range(28)
+            ],
+            index=range(1, 29),
+            columns=["limite de liquidité"],
         )
 
 

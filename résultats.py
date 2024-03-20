@@ -1,9 +1,12 @@
 import calculs
+import numpy as np
 import matplotlib.pyplot as plt
 from données import Données
-from numpy import log10, linspace, unique, arange
+
+équipe = 2
 
 
+# Ks de chaque équipe
 def tableau_1():
     print(
         "\nTableau 1. Constantes de conductivité hydraulique à saturation"
@@ -12,6 +15,7 @@ def tableau_1():
     )
 
 
+# Ks statistiques
 def tableau_2():
     print(
         "\nTableau 2: statistiques de base relatives aux valeurs de "
@@ -20,9 +24,10 @@ def tableau_2():
     )
 
 
+# Ks Graphique de points et diagramme en boîte
 def figure_1():
     """graphique de points et diagramme en boite"""
-    Ks_unique, counts = unique(
+    Ks_unique, counts = np.unique(
         calculs.ConductivitéHydraulique().Ks["Ks (cm/s)"], return_counts=True
     )
     medianprops = dict(linestyle="-", linewidth=2.5, color="crimson")
@@ -49,21 +54,26 @@ def figure_1():
     plt.show()
 
 
+# Ks diagramme en barres Ks
 def figure_2():
     """Diagramme à barres"""
     Ks = calculs.ConductivitéHydraulique().Ks["Ks (cm/s)"]
-    team = 8
     fig, ax = plt.subplots(figsize=(9, 6))
-    ax.bar(arange(1, len(Ks) + 1), Ks, color="powderblue", edgecolor="cornflowerblue")
     ax.bar(
-        team, Ks[team], color="crimson", label="K$_s$ = {0:0.4f} cm/s".format(Ks[team])
+        np.arange(1, len(Ks) + 1), Ks, color="powderblue", edgecolor="cornflowerblue"
+    )
+    ax.bar(
+        équipe,
+        Ks[équipe],
+        color="crimson",
+        label="K$_s$ = {0:0.4f} cm/s".format(Ks[équipe]),
     )
     ax.set_title(
         "Labo 1 partie 1 \nConstante de conductivité hydraulique à saturation (K$_s$)",
         fontsize=14,
     )
     ax.set_xlabel("équipe", fontsize=14)
-    ax.set_xticks(arange(1, len(Ks) + 1))
+    ax.set_xticks(np.arange(1, len(Ks) + 1))
     ax.tick_params(axis="x", which="both", labelsize="small")
     ax.set_ylabel("$K_s$" + " (cm/s)", fontsize=14)
     ax.set_ylim(bottom=0.005, top=0.022)
@@ -83,40 +93,95 @@ def figure_2():
     plt.show()
 
 
-def afficher_résultats():
-    res = calculs.CourbeDeRétention().paramètres_optimaux
+# paramètres courbe rétention
+def tableau_3():
     print(
-        "\nÉchantillon équipe 8 : "
-        + "\nConductivité hydraulique à saturation = {0:0.4f} cm/s.".format(
-            calculs.ConductivitéHydraulique().Ks[7]
+        "\nTableau 3. Paramètres optimaux de l'équation de van Genuchten"
+        + "\n ajustée sur les données et capacité au champ\n",
+        calculs.CourbeDeRétention().paramètres_optimaux.join(
+            calculs.CourbeDeRétention().capacité_au_champ
+        ),
+    )
+
+
+# courbe de rétention simple
+def figure_3a():
+    fig, ax = plt.subplots(figsize=(9, 6))
+    x = np.logspace(-0.2, 4.8, 200)
+    y = calculs.van_Genuchten(
+        x, *(calculs.CourbeDeRétention().paramètres_optimaux.loc[équipe])
+    )
+    ax.semilogx(x, y)
+    ax.semilogx(Données().potentiel_matriciel, Données().teneur_en_eau[équipe - 1], ".")
+    ax.set_title(
+        "Labo 1 partie 2\n" + f"Courbe de rétention équipe {équipe}", fontsize=14
+    )
+    ax.set_xlabel(r"potentiel matriciel $\psi$  (cm $H_2O$)", fontsize=14)
+    ax.set_ylabel("\n" + r"teneur en eau $\theta$", fontsize=14)
+    plt.show()
+
+
+# courbe de rétention comparée
+def figure_3b():
+    fig, ax = plt.subplots(figsize=(9, 6))
+    h = Données().potentiel_matriciel
+    theta = Données().teneur_en_eau
+    x = np.logspace(-0.2, 4.8, 200)
+
+    def y(équipe):
+        y = calculs.van_Genuchten(x, *(popt.loc[équipe]))
+        return y
+
+    popt = calculs.CourbeDeRétention().paramètres_optimaux
+    for i in range(1, 29):
+        ax.semilogx(
+            h,
+            theta[i - 1],
+            ".",
+            color="cornflowerblue",
+            markersize=0.75,
         )
+        ax.semilogx(x, y(i), color="powderblue", linewidth=0.75)
+    ax.semilogx(x, y(équipe))
+    ax.semilogx(h, theta[équipe - 1], ".")
+    ax.set_title(
+        "Labo 1 partie 2\n" + f"Courbe de rétention équipe {équipe}, comparée",
+        fontsize=14,
     )
-    print(
-        "teneur en eau résiduelle = {0:0.5f}".format(res[7][0])
-        + "\nteneur en eau à saturation = {0:0.5f}".format(res[7][1])
-        + "\na = {0:0.5f}".format(res[7][2])
-        + "\nm = {0:0.5f}".format(res[7][3])
-        + "\nn = {0:0.5f}".format(res[7][4])
+    ax.set_xlabel(r"potentiel matriciel $\psi$  (cm $H_2O$)", fontsize=14)
+    ax.set_ylabel("\n" + r"teneur en eau $\theta$", fontsize=14)
+    plt.show()
+
+
+# graphique nombre de coups Casagrande
+def figure_4():
+    fig, ax = plt.subplots()
+    ax.plot(
+        Données().teneur_en_eau_massique[équipe - 1],
+        Données().nombre_de_coups[équipe - 1],
+        "o",
     )
-    print(
-        "capacité au champ = {0:0.5f}".format(
-            calculs.CourbeDeRétention().capacité_au_champ[7]
-        )
+    ax.set_title(f"Labo 2 limite de liquidité équipe {équipe}")
+    ax.set_xlabel("teneur en eau massique (kg/kg)")
+    ax.set_ylabel("nombre de coups")
+    plt.show()
+
+
+# graphique log(nombre de coups) Casagrande
+def figure_5():
+    droite = calculs.LimiteDeLiquidité().régression_linéaire
+    m = droite.loc[équipe].iloc[0]
+    b = droite.loc[équipe].iloc[1]
+    r2 = droite.loc[équipe].iloc[2]
+    w = np.linspace(
+        Données().teneur_en_eau_massique[équipe - 1][3] - 1,
+        Données().teneur_en_eau_massique[équipe - 1][0] + 1,
+        100,
     )
-
-
-droite = calculs.LimiteDeLiquidité().paramètres_optimaux
-droite["R^2"] = droite["rvalue"] ** 2
-droite = droite.drop(columns=["rvalue", "pvalue", "stderr"])
-
-
-def plot_liquidité():
-    m = droite.loc[8].iloc[0]
-    b = droite.loc[8].iloc[1]
-    r2 = droite.loc[8].iloc[2]
-    w = linspace(64, 72, 100)
     plt.plot(
-        Données().teneur_en_eau_massique[7], log10(Données().nombre_de_coups[7]), "o"
+        Données().teneur_en_eau_massique[équipe - 1],
+        np.log10(Données().nombre_de_coups[équipe - 1]),
+        "o",
     )
     plt.plot(
         w,
@@ -132,7 +197,10 @@ def plot_liquidité():
 
 # tableau_1()
 # tableau_2()
+# tableau_3()
 # figure_1()
-figure_2()
-# print(droite)
-# plot_liquidité()
+# figure_2()
+# figure_3a()
+# figure_3b()
+# figure_4()
+figure_5()
