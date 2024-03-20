@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from données import Données
 
-équipe = 2
+équipe = 8
 
 
 # Ks de chaque équipe
@@ -195,12 +195,12 @@ def figure_5():
     plt.show()
 
 
-# tableau_1()
-# tableau_2()
-# tableau_3()
-# figure_1()
-# figure_2()
-# figure_3a()
-# figure_3b()
-# figure_4()
+tableau_1()
+tableau_2()
+tableau_3()
+figure_1()
+figure_2()
+figure_3a()
+figure_3b()
+figure_4()
 figure_5()
