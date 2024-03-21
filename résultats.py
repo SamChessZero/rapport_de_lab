@@ -7,6 +7,26 @@ from données import Données
 équipe = 8
 
 
+def tableaux_excel():
+    with ExcelWriter("tableaux/tableaux.xlsx") as writer:
+        calculs.ConductivitéHydraulique().Ks.to_excel(writer, sheet_name="Ks")
+        calculs.ConductivitéHydraulique().Ks.describe().to_excel(
+            writer, sheet_name="Ks stats"
+        )
+        calculs.CourbeDeRétention().paramètres_optimaux.to_excel(
+            writer, sheet_name="paramètres courbe rétention"
+        )
+        calculs.CourbeDeRétention().capacité_au_champ.to_excel(
+            writer, sheet_name="capacité au champ"
+        )
+        calculs.LimiteDeLiquidité().régression_linéaire.to_excel(
+            writer, sheet_name="droite régression"
+        )
+        calculs.LimiteDeLiquidité().teneur_en_eau_limite.to_excel(
+            writer, sheet_name="teneur eau limite"
+        )
+
+
 # Distribution des Ks des 28 échantillons
 def figure_1():
     Ks = calculs.ConductivitéHydraulique().Ks
@@ -167,26 +187,6 @@ def figures_png():
     figure_3b()
     figure_4()
     figure_5()
-
-
-def tableaux_excel():
-    with ExcelWriter("tableaux/tableaux.xlsx") as writer:
-        calculs.ConductivitéHydraulique().Ks.to_excel(writer, sheet_name="Ks")
-        calculs.ConductivitéHydraulique().Ks.describe().to_excel(
-            writer, sheet_name="Ks stats"
-        )
-        calculs.CourbeDeRétention().paramètres_optimaux.to_excel(
-            writer, sheet_name="paramètres courbe rétention"
-        )
-        calculs.CourbeDeRétention().capacité_au_champ.to_excel(
-            writer, sheet_name="capacité au champ"
-        )
-        calculs.LimiteDeLiquidité().régression_linéaire.to_excel(
-            writer, sheet_name="droite régression"
-        )
-        calculs.LimiteDeLiquidité().teneur_en_eau_limite.to_excel(
-            writer, sheet_name="teneur eau limite"
-        )
 
 
 tableaux_excel()
