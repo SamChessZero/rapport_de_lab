@@ -7,23 +7,30 @@ from données import Données
 équipe = 8
 
 
-# Ks Graphique de points et diagramme en boîte
+# Distribution des Ks des 28 échantillons
 def figure_1():
     """graphique de points et diagramme en boite"""
     Ks_unique, counts = np.unique(
-        calculs.ConductivitéHydraulique().Ks["Ks (cm/s)"], return_counts=True
+        calculs.ConductivitéHydraulique().Ks["Ks (mm/s)"], return_counts=True
     )
-    medianprops = dict(linestyle="-", linewidth=2.5, color="crimson")
-
+    medianprops = dict(linestyle="-", linewidth=2, color="midnightblue")
     boxprops = dict(color="midnightblue", facecolor="powderblue")
     whiskerprops = dict(color="midnightblue")
-
-    fig1, ax = plt.subplots(2, figsize=(9, 6), sharex=True)
+    fig, ax = plt.subplots(2, figsize=(9, 6), sharex=True)
     ax[0].scatter(Ks_unique, counts, 50, color="powderblue", edgecolor="darkblue")
+    ax[0].scatter(
+        calculs.ConductivitéHydraulique().Ks.loc[8],
+        1,
+        50,
+        color="crimson",
+        edgecolor="darkred",
+    )
     ax[0].set_ybound(0, 5)
-    ax[0].set_ylabel("frequence", fontsize=14)
-    ax[0].set_title("Labo 1 partie 1 \nDistribution des différents Ks", fontsize=14)
-
+    ax[0].set_ylabel("Fréquence", fontsize=12)
+    ax[0].set_title(
+        "Distribution des $K_s$ des 28 échantillons\n",
+        fontsize=14,
+    )
     ax[1].boxplot(
         calculs.ConductivitéHydraulique().Ks,
         vert=False,
@@ -32,15 +39,16 @@ def figure_1():
         boxprops=boxprops,
         whiskerprops=whiskerprops,
     )
-    ax[1].set_xlabel("Ks (cm/s)", fontsize=14)
+    ax[1].set_xlabel(
+        "Conductivité hydraulique à saturation $K_s$ $(mm/s)$", fontsize=12
+    )
     ax[1].get_yaxis().set_visible(False)
     plt.savefig("figures/fig1.png")
 
 
-# Ks diagramme en barres Ks
+# Valeurs de Ks des 28 échantillons
 def figure_2():
-    """Diagramme à barres"""
-    Ks = calculs.ConductivitéHydraulique().Ks["Ks (cm/s)"]
+    Ks = calculs.ConductivitéHydraulique().Ks["Ks (mm/s)"]
     fig, ax = plt.subplots(figsize=(9, 6))
     ax.bar(
         np.arange(1, len(Ks) + 1), Ks, color="powderblue", edgecolor="cornflowerblue"
@@ -49,30 +57,19 @@ def figure_2():
         équipe,
         Ks[équipe],
         color="crimson",
-        label="K$_s$ = {0:0.4f} cm/s".format(Ks[équipe]),
+        edgecolor="darkred",
+        label="K$_s$ = {0:0.3f} mm/s".format(Ks[équipe]),
     )
     ax.set_title(
-        "Labo 1 partie 1 \nConstante de conductivité hydraulique à saturation (K$_s$)",
+        "Valeurs de $K_s$ des 28 échantillons",
         fontsize=14,
     )
-    ax.set_xlabel("équipe", fontsize=14)
+    ax.set_xlabel("Échantillon", fontsize=12)
     ax.set_xticks(np.arange(1, len(Ks) + 1))
     ax.tick_params(axis="x", which="both", labelsize="small")
-    ax.set_ylabel("$K_s$" + " (cm/s)", fontsize=14)
-    ax.set_ylim(bottom=0.005, top=0.022)
-    ax.axhline(0.0157, linestyle="--", color="cornflowerblue", label="moyenne")
+    ax.set_ylabel("Conductivité hydraulique à saturation $K_s$ $(mm/s)$", fontsize=12)
     ax.legend(loc="upper left", frameon=False, fontsize=12)
-    line_break = dict(
-        marker=[(-1, -0.5), (1, 0.5)],
-        markersize=12,
-        linestyle="none",
-        color="k",
-        mec="k",
-        mew=1,
-        clip_on=False,
-    )
-    ax.plot([0.02], transform=ax.transAxes, **line_break)
-    ax.plot([0.03], transform=ax.transAxes, **line_break)
+    ax.set_ylim(bottom=0.00, top=0.25)
     plt.savefig("figures/fig2.png")
 
 
@@ -83,13 +80,12 @@ def figure_3a():
     y = calculs.van_Genuchten(
         x, *(calculs.CourbeDeRétention().paramètres_optimaux.loc[équipe])
     )
-    ax.semilogx(x, y)
     ax.semilogx(Données().potentiel_matriciel, Données().teneur_en_eau[équipe - 1], ".")
-    ax.set_title(
-        "Labo 1 partie 2\n" + f"Courbe de rétention équipe {équipe}", fontsize=14
-    )
-    ax.set_xlabel(r"potentiel matriciel $\psi$  (cm $H_2O$)", fontsize=14)
-    ax.set_ylabel("\n" + r"teneur en eau $\theta$", fontsize=14)
+    ax.semilogx(x, y, color="crimson")
+    ax.set_title(f"Courbe de rétention d'eau de l'échantillon {équipe}", fontsize=14)
+    ax.set_xlabel(r"Potentiel matriciel $\Psi$  ($cm$ $H_2O$)", fontsize=12)
+    ax.set_ylabel("\n" + r"Teneur en eau $\theta$ ($cm^3/cm^3$)", fontsize=12)
+    ax.set_ylim(bottom=-0.02, top=0.51)
     plt.savefig("figures/fig3a.png")
 
 
@@ -114,14 +110,15 @@ def figure_3b():
             markersize=0.75,
         )
         ax.semilogx(x, y(i), color="powderblue", linewidth=0.75)
-    ax.semilogx(x, y(équipe))
     ax.semilogx(h, theta[équipe - 1], ".")
+    ax.semilogx(x, y(équipe), color="crimson")
     ax.set_title(
-        "Labo 1 partie 2\n" + f"Courbe de rétention équipe {équipe}, comparée",
+        f"Courbe de rétention d'eau de l'échantillon {équipe}, comparée",
         fontsize=14,
     )
-    ax.set_xlabel(r"potentiel matriciel $\psi$  (cm $H_2O$)", fontsize=14)
-    ax.set_ylabel("\n" + r"teneur en eau $\theta$", fontsize=14)
+    ax.set_xlabel(r"Potentiel matriciel $\Psi$  ($cm$ $H_2O$)", fontsize=12)
+    ax.set_ylabel("\n" + r"Teneur en eau $\theta$ ($cm^3/cm^3$)", fontsize=12)
+    ax.set_ylim(bottom=-0.02, top=0.51)
     plt.savefig("figures/fig3b.png")
 
 
@@ -146,11 +143,7 @@ def figure_5():
     m = droite.loc[équipe].iloc[0]
     b = droite.loc[équipe].iloc[1]
     r2 = droite.loc[équipe].iloc[2]
-    x = np.linspace(
-        w[3] - 1,
-        w[0] + 1,
-        100,
-    )
+    x = np.linspace(w[3] - 1, w[0] + 1, 100)
     fig, ax = plt.subplots()
     ax.plot(
         w,
@@ -159,7 +152,7 @@ def figure_5():
     )
     ax.plot(
         x,
-        calculs.droite_de_liquidation(m, w, b),
+        calculs.droite_de_liquidation(m, x, b),
         label="$y = {0:0.4f} x + {1:0.4f}$ \n $R^2 = {2:0.6f}$".format(m, b, r2),
     )
     ax.legend()
@@ -184,9 +177,12 @@ def tableaux_excel():
         calculs.ConductivitéHydraulique().Ks.describe().to_excel(
             writer, sheet_name="Ks stats"
         )
-        calculs.CourbeDeRétention().paramètres_optimaux.join(
-            calculs.CourbeDeRétention().capacité_au_champ
-        ).to_excel(writer, sheet_name="paramètres courbe rétention")
+        calculs.CourbeDeRétention().paramètres_optimaux.to_excel(
+            writer, sheet_name="paramètres courbe rétention"
+        )
+        calculs.CourbeDeRétention().capacité_au_champ.to_excel(
+            writer, sheet_name="capacité au champ"
+        )
         calculs.LimiteDeLiquidité().régression_linéaire.to_excel(
             writer, sheet_name="droite régression"
         )

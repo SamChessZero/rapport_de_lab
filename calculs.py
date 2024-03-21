@@ -11,7 +11,11 @@ class ConductivitéHydraulique:
         def calculer_Ks_moyen(débits_Q: list):
             surface = pi * (échantillon.diamètre / 2) ** 2
             Ks_moyen = (
-                (débits_Q.mean()) / surface * échantillon.longueur / échantillon.delta_H
+                10
+                * (débits_Q.mean())
+                / surface
+                * échantillon.longueur
+                / échantillon.delta_H
             )
             return Ks_moyen
 
@@ -22,7 +26,7 @@ class ConductivitéHydraulique:
             return Ks
 
         self.Ks = DataFrame(
-            obtenir_Ks_de_chaque_équipe(), index=range(1, 29), columns=["Ks (cm/s)"]
+            obtenir_Ks_de_chaque_équipe(), index=range(1, 29), columns=["Ks (mm/s)"]
         )
 
 
@@ -83,8 +87,8 @@ def van_Genuchten(h, qr, qs, a, m, n):
 
 
 def droite_de_liquidation(m, w, b):
-    log10_nombre_de_coups = m * w + b
-    return log10_nombre_de_coups
+    droite = m * w + b
+    return droite
 
 
 def convertir_kiloPascals_en_cm_H2O(pression):
