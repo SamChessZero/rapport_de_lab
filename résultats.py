@@ -9,17 +9,15 @@ from données import Données
 
 # Distribution des Ks des 28 échantillons
 def figure_1():
-    """graphique de points et diagramme en boite"""
-    Ks_unique, counts = np.unique(
-        calculs.ConductivitéHydraulique().Ks["Ks (mm/s)"], return_counts=True
-    )
+    Ks = calculs.ConductivitéHydraulique().Ks
+    Ks_unique, counts = np.unique(Ks["Ks (mm/s)"], return_counts=True)
     medianprops = dict(linestyle="-", linewidth=2, color="midnightblue")
     boxprops = dict(color="midnightblue", facecolor="powderblue")
     whiskerprops = dict(color="midnightblue")
     fig, ax = plt.subplots(2, figsize=(9, 6), sharex=True)
     ax[0].scatter(Ks_unique, counts, 50, color="powderblue", edgecolor="darkblue")
     ax[0].scatter(
-        calculs.ConductivitéHydraulique().Ks.loc[8],
+        Ks.loc[8],
         1,
         50,
         color="crimson",
@@ -32,7 +30,7 @@ def figure_1():
         fontsize=14,
     )
     ax[1].boxplot(
-        calculs.ConductivitéHydraulique().Ks,
+        Ks,
         vert=False,
         patch_artist=True,
         medianprops=medianprops,
